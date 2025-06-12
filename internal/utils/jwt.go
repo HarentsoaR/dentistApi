@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"errors"
+	"log"
 	"os"
 	"time"
 
@@ -17,6 +19,10 @@ type Claims struct {
 
 // GenerateJWT creates a new JWT token for a given user.
 func GenerateJWT(userID, role string) (string, error) {
+	if len(jwtSecret) == 0 {
+		log.Println("CRITICAL: JWT_SECRET is not configured. Cannot generate token.")
+		return "", errors.New("JWT_SECRET is not configured")
+	}
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
 		UserID: userID,
@@ -32,6 +38,10 @@ func GenerateJWT(userID, role string) (string, error) {
 
 // ValidateJWT validates a given token string.
 func ValidateJWT(tokenStr string) (*Claims, error) {
+	if len(jwtSecret) == 0 {
+		log.Println("CRITICAL: JWT_SECRET is not configured. Cannot validate token.")
+		return nil, errors.New("JWT_SECRET is not configured")
+	}
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil

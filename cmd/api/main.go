@@ -22,6 +22,15 @@ func main() {
 		log.Println("No .env file found, relying on environment variables.")
 	}
 
+	log.Printf("MONGO_URI: %s", os.Getenv("MONGO_URI"))
+	log.Printf("MONGO_DATABASE: %s", os.Getenv("MONGO_DATABASE"))
+	log.Printf("API_PORT: %s", os.Getenv("API_PORT"))
+	if os.Getenv("JWT_SECRET") != "" {
+		log.Println("JWT_SECRET is SET.")
+	} else {
+		log.Println("JWT_SECRET is NOT SET.")
+	}
+
 	// --- Database Connection ---
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -44,7 +53,7 @@ func main() {
 
 	// --- CORS Middleware ---
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
@@ -74,9 +83,12 @@ func main() {
 		apiRoutes.PUT("/user/:id", h.UpdateCurrentUser)
 	}
 
-	port := os.Getenv("API_PORT")
+	port := os.Getenv("PORT") // Railway typically sets this
 	if port == "" {
-		port = "8080" // Default port
+		port = os.Getenv("API_PORT") // Fallback to API_PORT
+		if port == "" {
+			port = "8080" // Default port
+		}
 	}
 	log.Printf("Starting server on port %s", port)
 	r.Run(":" + port)

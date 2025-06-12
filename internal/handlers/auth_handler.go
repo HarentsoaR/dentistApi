@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,11 +33,13 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 	}
 
 	// Nous construisons maintenant manuellement notre modèle `User` pour la base de données
+	log.Println("RegisterUser: Attempting to hash password...")
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
+	log.Println("RegisterUser: Password hashed successfully.")
 
 	// Définir le rôle par défaut si non fourni
 	role := req.Role
@@ -54,6 +57,7 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 	}
 
 	collection := h.DB.Collection("users")
+	log.Println("RegisterUser: Attempting to insert user into database...")
 	_, err = collection.InsertOne(context.TODO(), user)
 	if err != nil {
 		// Gérer le cas où l'email existe déjà
@@ -64,6 +68,7 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
+	log.Println("RegisterUser: User inserted successfully.")
 
 	// Le tag `json:"-"` sur `user.Password` dans la structure `models.User`
 	// empêchera le mot de passe haché d'être renvoyé ici. C'est parfait.
@@ -83,22 +88,28 @@ func (h *Handler) Login(c *gin.Context) {
 
 	var user models.User
 	collection := h.DB.Collection("users")
+	log.Println("Login: Attempting to find user by email...")
 	err := collection.FindOne(context.TODO(), bson.M{"email": loginReq.Email}).Decode(&user)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
+	log.Println("Login: User found successfully.")
 
+	log.Println("Login: Attempting to check password hash...")
 	if !utils.CheckPasswordHash(loginReq.Password, user.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
+	log.Println("Login: Password hash checked successfully.")
 
+	log.Println("Login: Attempting to generate JWT...")
 	token, err := utils.GenerateJWT(user.ID.Hex(), user.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return
 	}
+	log.Println("Login: JWT generated successfully.")
 
 	// Don't send password back
 	user.Password = ""
