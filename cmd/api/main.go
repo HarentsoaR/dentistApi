@@ -21,6 +21,14 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, relying on environment variables.")
 	}
+	log.Printf("MONGO_URI: %s", os.Getenv("MONGO_URI"))
+	log.Printf("MONGO_DATABASE: %s", os.Getenv("MONGO_DATABASE"))
+	log.Printf("API_PORT: %s", os.Getenv("API_PORT"))
+	if os.Getenv("JWT_SECRET") != "" {
+		log.Println("JWT_SECRET is SET.")
+	} else {
+		log.Println("JWT_SECRET is NOT SET.")
+	}
 
 	// --- Database Connection ---
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -42,7 +50,7 @@ func main() {
 	// --- Gin Router ---
 	r := gin.Default()
 
-	// --- CORS Middleware ---
+	// ---  Middleware ---
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
