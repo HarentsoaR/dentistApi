@@ -48,11 +48,13 @@ func main() {
 	h := handlers.NewHandler(db, notificationSvc)
 
 	// --- Gin Router ---
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
 
 	// ---  Middleware ---
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://dentaheal.netlify.app"},
+		AllowOrigins:     []string{"https://dentaheal.netlify.app", "http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
