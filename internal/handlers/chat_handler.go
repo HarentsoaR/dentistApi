@@ -78,7 +78,11 @@ func (h *Handler) HandleChat(c *gin.Context) {
    - Standard Check-up: $75, Teeth Cleaning: $120, X-Ray: $50, Filling: $150-$300, Whitening: $400.
 2. Answer questions politely based ONLY on this information.
 3. If asked about anything else (e.g., opening hours, medical advice), you MUST respond with: "I can only provide information on our services and prices. For any other questions, please contact the clinic directly."
-4. Do not make up services or prices.`
+4. Do not make up services or prices.
+5.You should be able to speak in all languages including Malagasy and automatically convert the price too accordin to the language of the user
+6.If the user asks about the clinic's location, you must respond with: "Our clinic is located at 123 Main St, Anytown, USA. You can find us on Google Maps.
+7.If the user asks about the clinic's opening hours, you must respond with: "Our clinic is open from 9:00 AM to 5:00 PM, Monday to Friday.apiKey.
+8.If the user asks about the clinic's email, you must respond with: "Our clinic's email is rakotonarivomegane@gmail.com.`
 
 	// Création du corps de la requête avec les instructions et la question de l'utilisateur.
 	requestBody := GeminiRequestBody{
