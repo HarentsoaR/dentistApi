@@ -52,7 +52,7 @@ func main() {
 
 	// ---  Middleware ---
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     []string{"http://localhost:3000", "https://dentaheal.netlify.app/"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
@@ -73,8 +73,8 @@ func main() {
 		apiRoutes.GET("/appointments", h.GetAppointments)    // Get appointments with filters
 		apiRoutes.POST("/appointments", h.CreateAppointment) // Create a new appointment
 		apiRoutes.GET("/appointment/user/:id", h.GetAppointment)
-		// apiRoutes.PUT("/appointments/:id", h.UpdateAppointment)          // Update an appointment (dentist/staff)
-		// apiRoutes.PATCH("/appointments/:id/cancel", h.CancelAppointment) // Cancel an appointment (dentist/staff)
+		apiRoutes.PUT("/appointments/:id", h.UpdateAppointment)          // Update an appointment (dentist/staff)
+		apiRoutes.PATCH("/appointments/:id/cancel", h.CancelAppointment) // Cancel an appointment (dentist/staff)
 
 		// other existing routes
 		apiRoutes.POST("/chat", h.HandleChat)
