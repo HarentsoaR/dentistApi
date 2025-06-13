@@ -52,7 +52,7 @@ func main() {
 
 	// ---  Middleware ---
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "https://dentaheal.netlify.app/"},
+		AllowOrigins:     []string{"https://dentaheal.netlify.app"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
