@@ -7,14 +7,17 @@ import (
 	"time"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/harentsoaR/dentist-api/internal/config"
 	"github.com/harentsoaR/dentist-api/internal/handlers"
 	"github.com/harentsoaR/dentist-api/internal/middleware"
-	"github.com/harentsoaR/dentist-api/internal/services" // Import the new service
+	"github.com/harentsoaR/dentist-api/internal/services"
 )
 
 func main() {
@@ -43,9 +46,14 @@ func main() {
 
 	// --- Initialize Services ---
 	notificationSvc := services.NewNotificationService()
+	oauthService := services.NewOAuthService(db)
 
 	// --- Initialize Handlers with DB and Services ---
 	h := handlers.NewHandler(db, notificationSvc)
+	oauthHandler := handlers.NewOAuthHandler(oauthService)
+
+	// Initialize OAuth2 config
+	config.InitOAuthConfig()
 
 	// --- Gin Router ---
 	r := gin.New()
@@ -58,14 +66,24 @@ func main() {
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
+		ExposeHeaders:    []string{"Content-Length"},
 	}))
+
+	// Session middleware
+	store := cookie.NewStore([]byte(os.Getenv("SESSION_SECRET")))
+	r.Use(sessions.Sessions("dentist_session", store))
 
 	// --- Routes ---
 	authRoutes := r.Group("/auth")
 	{
-		// Assuming you will move these handlers into the handlers package
 		authRoutes.POST("/register", h.RegisterUser)
 		authRoutes.POST("/login", h.Login)
+
+		// OAuth Routes
+		authRoutes.GET("/google", oauthHandler.InitGoogleLogin)
+		authRoutes.GET("/google/callback", oauthHandler.HandleGoogleCallback)
+		authRoutes.POST("/logout", oauthHandler.Logout)
+		authRoutes.GET("/me", oauthHandler.GetCurrentUser)
 	}
 
 	apiRoutes := r.Group("/api")
