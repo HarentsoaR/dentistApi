@@ -14,6 +14,7 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+// GoogleUser represents the user information returned by Google OAuth
 type GoogleUser struct {
 	ID            string `json:"id"`
 	Email         string `json:"email"`
@@ -27,9 +28,9 @@ type GoogleUser struct {
 
 var (
 	GoogleOAuthConfig *oauth2.Config
-	)
+)
 
-// GenerateRandomState generates a secure random state string for OAuth
+// GenerateRandomState creates a secure random string for OAuth state parameter
 func GenerateRandomState() (string, error) {
 	b := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, b); err != nil {
@@ -38,6 +39,7 @@ func GenerateRandomState() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
+// InitOAuthConfig initializes the Google OAuth2 configuration using environment variables
 func InitOAuthConfig() {
 	GoogleOAuthConfig = &oauth2.Config{
 		RedirectURL:  os.Getenv("GOOGLE_REDIRECT_URL"),
@@ -51,8 +53,9 @@ func InitOAuthConfig() {
 	}
 }
 
+// GetGoogleUserInfo exchanges the code for a token and fetches the user's profile from Google
 func GetGoogleUserInfo(code, state string) (*GoogleUser, error) {
-	// State is already validated in the handler
+	// Checking state
 	token, err := GoogleOAuthConfig.Exchange(context.Background(), code)
 	if err != nil {
 		return nil, fmt.Errorf("code exchange failed: %s", err.Error())

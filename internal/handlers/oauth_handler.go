@@ -13,19 +13,21 @@ import (
 	"github.com/harentsoaR/dentist-api/internal/services"
 )
 
+// OAuthHandler handles OAuth-related endpoints
 type OAuthHandler struct {
 	oauthService *services.OAuthService
 }
 
+// NewOAuthHandler creates a new OAuthHandler
 func NewOAuthHandler(oauthService *services.OAuthService) *OAuthHandler {
 	return &OAuthHandler{
 		oauthService: oauthService,
 	}
 }
 
-// InitGoogleLogin initiates the Google OAuth flow
+// InitGoogleLogin starts the Google OAuth login process
 func (h *OAuthHandler) InitGoogleLogin(c *gin.Context) {
-	// Generate a secure random state
+	// Generating a secure random state
 	state, err := config.GenerateRandomState()
 	if err != nil {
 		log.Printf("Failed to generate state: %v", err)
@@ -33,7 +35,7 @@ func (h *OAuthHandler) InitGoogleLogin(c *gin.Context) {
 		return
 	}
 
-	// Store the state in the session
+	// Storing the state in the session
 	session := sessions.Default(c)
 	session.Options(sessions.Options{
 		Path:     "/",
@@ -51,13 +53,13 @@ func (h *OAuthHandler) InitGoogleLogin(c *gin.Context) {
 
 	log.Printf("Generated OAuth state: %s", state)
 	
-	// Generate the OAuth URL with just the state and access type
+	// Generating the OAuth URL with just the state and access type
 	url := config.GoogleOAuthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
 	log.Printf("Redirecting to Google OAuth: %s", url)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
-// HandleGoogleCallback handles the callback from Google OAuth
+// HandleGoogleCallback processes the callback from Google after user authentication
 func (h *OAuthHandler) HandleGoogleCallback(c *gin.Context) {
 	// Get the state and code from the query
 	state := c.Query("state")
@@ -152,7 +154,7 @@ func (h *OAuthHandler) HandleGoogleCallback(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 
-// Logout handles user logout
+// Logout ends the user session and logs them out
 func (h *OAuthHandler) Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Clear()
@@ -166,7 +168,7 @@ func (h *OAuthHandler) Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
 }
 
-// GetCurrentUser returns the current authenticated user
+// GetCurrentUser returns the currently authenticated user's ID
 func (h *OAuthHandler) GetCurrentUser(c *gin.Context) {
 	session := sessions.Default(c)
 	userID := session.Get("user_id")

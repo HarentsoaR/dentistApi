@@ -17,17 +17,19 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// OAuthService provides methods for handling OAuth users and tokens
 type OAuthService struct {
 	userCollection *mongo.Collection
 }
 
+// NewOAuthService returns a new instance of OAuthService
 func NewOAuthService(db *mongo.Database) *OAuthService {
 	return &OAuthService{
 		userCollection: db.Collection("users"),
 	}
 }
 
-// FindOrCreateUser finds an existing user by email or creates a new one
+// FindOrCreateUser finds a user by provider or email, or creates a new one if not found
 func (s *OAuthService) FindOrCreateUser(provider string, userInfo *config.GoogleUser) (*models.User, error) {
 	// Try to find user by provider ID first
 	var user models.User
@@ -54,7 +56,7 @@ func (s *OAuthService) FindOrCreateUser(provider string, userInfo *config.Google
 					Avatar:     userInfo.Picture,
 					Provider:   "google",
 					ProviderID: userInfo.ID,
-					Role:       "user",
+					Role:       "client",
 				}
 
 				_, err = s.userCollection.InsertOne(context.Background(), newUser)
@@ -100,7 +102,7 @@ func (s *OAuthService) FindOrCreateUser(provider string, userInfo *config.Google
 	return &user, nil
 }
 
-// GenerateJWT generates a JWT token for the user
+// GenerateJWT creates a JWT token for the given user
 func (s *OAuthService) GenerateJWT(user *models.User) (string, error) {
 	token, err := utils.GenerateJWT(user.ID.Hex(), user.Role)
 	if err != nil {
